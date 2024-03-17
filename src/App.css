@@ -1,0 +1,60 @@
+/* App.css */
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
+}
+
+.clock-container {
+  display: flex;
+  justify-content: center;
+}
+
+.break-container,
+.session-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+
+.label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.length {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.btn {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.time-display {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn-primary,
+.btn-danger {
+  margin: 0 10px;
+  width: 100px;
+}
