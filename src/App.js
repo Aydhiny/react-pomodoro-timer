@@ -1,7 +1,5 @@
-// App.js
-
 import React, { useState, useRef } from 'react';
-import './App.css'; // Import custom CSS for styling
+import './App.css';
 
 const App = () => {
   const [breakLength, setBreakLength] = useState(5);
@@ -9,139 +7,114 @@ const App = () => {
   const [timeLeft, setTimeLeft] = useState(sessionLength * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerType, setTimerType] = useState('Session');
+  const audioElement = useRef(null);
+  const timer = useRef(null);
 
-  const audioRef = useRef(null);
-
-  const formatTime = (timeInSeconds) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return (
-      String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0')
-    );
-  };
-
-  const handleStartStop = () => {
-    if (timerRunning) {
-      clearInterval(timer);
-      setTimerRunning(false);
-    } else {
-      const timer = setInterval(() => {
-        setTimeLeft((prevTimeLeft) => {
-          if (prevTimeLeft === 0) {
-            audioRef.current.play();
-            if (timerType === 'Session') {
-              setTimerType('Break');
-              setTimeLeft(breakLength * 60);
-            } else {
-              setTimerType('Session');
-              setTimeLeft(sessionLength * 60);
-            }
-          } else {
-            return prevTimeLeft - 1;
-          }
-        });
-      }, 1000);
-      setTimerRunning(true);
+  const decrementBreakLength = () => {
+    if (breakLength > 1) {
+      setBreakLength(breakLength - 1);
     }
   };
 
-  const handleReset = () => {
-    clearInterval(timer);
+  const incrementBreakLength = () => {
+    if (breakLength < 60) {
+      setBreakLength(breakLength + 1);
+    }
+  };
+
+  const decrementSessionLength = () => {
+    if (sessionLength > 1) {
+      setSessionLength(sessionLength - 1);
+      if (!timerRunning) {
+        setTimeLeft((sessionLength - 1) * 60);
+      }
+    }
+  };
+
+  const incrementSessionLength = () => {
+    if (sessionLength < 60) {
+      setSessionLength(sessionLength + 1);
+      if (!timerRunning) {
+        setTimeLeft((sessionLength + 1) * 60);
+      }
+    }
+  };
+
+  const toggleTimer = () => {
+    if (!timerRunning) {
+      setTimerRunning(true);
+      timer.current = setInterval(() => {
+        setTimeLeft((prevTimeLeft) => {
+          if (prevTimeLeft === 0) {
+            audioElement.current.play();
+            clearInterval(timer.current);
+            if (timerType === 'Session') {
+              setTimerType('Break');
+              setTimeLeft(breakLength * 60);
+              timer.current = setInterval(() => {
+                setTimeLeft((prevTimeLeft) => {
+                  if (prevTimeLeft === 0) {
+                    audioElement.current.play();
+                    clearInterval(timer.current);
+                    setTimerType('Session');
+                    setTimeLeft(sessionLength * 60);
+                    setTimerRunning(false);
+                  }
+                  return prevTimeLeft - 1;
+                });
+              }, 1000);
+            }
+          }
+          return prevTimeLeft - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(timer.current);
+      setTimerRunning(false);
+    }
+  };
+
+  const resetTimer = () => {
+    clearInterval(timer.current);
     setTimerRunning(false);
     setBreakLength(5);
     setSessionLength(25);
     setTimeLeft(25 * 60);
     setTimerType('Session');
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-  };
-
-  const handleIncrement = (type) => {
-    if (type === 'Break' && breakLength < 60) {
-      setBreakLength((prevLength) => prevLength + 1);
-    } else if (type === 'Session' && sessionLength < 60) {
-      setSessionLength((prevLength) => prevLength + 1);
-      setTimeLeft((prevTimeLeft) => prevTimeLeft + 60);
-    }
-  };
-
-  const handleDecrement = (type) => {
-    if (type === 'Break' && breakLength > 1) {
-      setBreakLength((prevLength) => prevLength - 1);
-    } else if (type === 'Session' && sessionLength > 1) {
-      setSessionLength((prevLength) => prevLength - 1);
-      setTimeLeft((prevTimeLeft) => prevTimeLeft - 60);
-    }
+    audioElement.current.pause();
+    audioElement.current.currentTime = 0;
   };
 
   return (
-    <div className="container">
-      <h1 className="text-center mt-5">25 + 5 Clock</h1>
-      <div className="clock-container">
-        <div className="break-container">
-          <div id="break-label" className="label">
-            Break Length
-          </div>
-          <button
-            id="break-decrement"
-            className="btn btn-secondary"
-            onClick={() => handleDecrement('Break')}
-          >
-            -
-          </button>
-          <div id="break-length" className="length">
-            {breakLength}
-          </div>
-          <button
-            id="break-increment"
-            className="btn btn-secondary"
-            onClick={() => handleIncrement('Break')}
-          >
-            +
-          </button>
-        </div>
-        <div className="session-container">
-          <div id="session-label" className="label">
-            Session Length
-          </div>
-          <button
-            id="session-decrement"
-            className="btn btn-secondary"
-            onClick={() => handleDecrement('Session')}
-          >
-            -
-          </button>
-          <div id="session-length" className="length">
-            {sessionLength}
-          </div>
-          <button
-            id="session-increment"
-            className="btn btn-secondary"
-            onClick={() => handleIncrement('Session')}
-          >
-            +
-          </button>
-        </div>
+    <div className="App">
+      <p className='fixed-logo'>Ajdin Mehmedović</p>
+      <div id="break-label">
+        <h2>Break Length</h2>
+        <button id="break-decrement" onClick={decrementBreakLength}>-</button>
+        <span id="break-length">{breakLength}</span>
+        <button id="break-increment" onClick={incrementBreakLength}>+</button>
       </div>
-      <div id="timer-label" className="text-center mt-4">
-        {timerType}
+      <div id="session-label">
+        <h2>Session Length</h2>
+        <button id="session-decrement" onClick={decrementSessionLength}>-</button>
+        <span id="session-length">{sessionLength}</span>
+        <button id="session-increment" onClick={incrementSessionLength}>+</button>
       </div>
-      <div id="time-left" className="time-display text-center">
-        {formatTime(timeLeft)}
+      <div id="timer-label">
+        <h2>{timerType}</h2>
+        <span id="time-left">{`${Math.floor(timeLeft / 60)
+          .toString()
+          .padStart(2, '0')}:${(timeLeft % 60)
+          .toString()
+          .padStart(2, '0')}`}</span>
       </div>
-      <div className="controls text-center mt-4">
-        <button id="start_stop" className="btn btn-primary" onClick={handleStartStop}>
-          {timerRunning ? 'Pause' : 'Start'}
-        </button>
-        <button id="reset" className="btn btn-danger" onClick={handleReset}>
-          Reset
-        </button>
-      </div>
+      <button id="start_stop" onClick={toggleTimer}>Start/Stop</button>
+      <button id="reset" onClick={resetTimer}>Reset</button>
       <audio
         id="beep"
         src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-        ref={audioRef}
-      />
+        ref={audioElement}
+      ></audio>
     </div>
   );
 };
